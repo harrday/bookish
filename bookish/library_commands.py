@@ -28,14 +28,14 @@ class Library:
         loans = '''
                 CREATE TABLE IF NOT EXISTS loans (
                     BookId,
-                    CustomerId,
+                    MemberId,
                     Loan_Date,
                     Due_Date
                 )'''
 
         members = '''
             CREATE TABLE IF NOT EXISTS members (
-                CustomerId INTEGER PRIMARY KEY AUTOINCREMENT, 
+                MemberId INTEGER PRIMARY KEY AUTOINCREMENT, 
                 FirstName,
                 LastName
             )'''
@@ -43,6 +43,7 @@ class Library:
         self.cursor.execute(book)
         self.cursor.execute(loans)
         self.cursor.execute(members)
+        self.lib.commit()
 
     def addbookcomm(self, name, author, genre):
         params = (name, author, genre)
@@ -62,6 +63,7 @@ class Library:
         rows = self.cursor.fetchall()
         for row in rows:
             print(row)
+        return
 
     def checkbookexists(self, bookupdate):
         check = """
@@ -110,6 +112,50 @@ class Library:
             """
 
         self.cursor.execute(update, (textupdate, bookupdate))
+        self.lib.commit()
+        return
+
+    def addmembercomm(self, fname, lname):
+        params = (fname, lname)
+        members = """
+                    INSERT INTO members
+                    (FirstName, LastName)
+                    VALUES (?, ?)
+                """
+        self.cursor.execute(members, params)
+        self.lib.commit()
+        return
+
+    def getidfrombook(self, book):
+        books = """
+                    SELECT *
+                    FROM books
+                    WHERE BookName = ?
+        """
+        self.cursor.execute(books, book)
+        rows = self.cursor.fetchone()
+        return rows[0]
+
+    def getidfrommember(self, member):
+        fname, lname = member.split()
+        name = (fname, lname)
+        members = """
+                            SELECT *
+                            FROM members
+                            WHERE FirstName = ? AND LastName = ?
+                """
+        self.cursor.execute(members, name)
+        rows = self.cursor.fetchone()
+        return rows[0]
+
+    def createloan(self, memberid, bookid, loandate, duedate):
+        params = (bookid, memberid, loandate, duedate)
+        loan = """
+                    INSERT INTO loans
+                    (BookId, MemberId, Loan_Date, Due_Date)
+                    VALUES (?, ?, ?, ?)
+                """
+        self.cursor.execute(loan, params)
         self.lib.commit()
         return
 

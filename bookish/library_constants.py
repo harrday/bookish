@@ -6,5 +6,8 @@ LIBRARY_COMMANDS = {
     5: ['add new members', 'addmembers()'],
     6: ['check out book to a member', 'checkout()'],
     7: ['See which books a given member has taken out', 'whichbooks()'],
-    8: ['quit', 'quit()']
+    8: ['quit', 'quit()'],
+    9: ['rerun databases', 'rerundb()']
 }
+
+LOAN_DURATION = 14 #days
