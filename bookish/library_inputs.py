@@ -2,9 +2,11 @@ from library_commands import Library
 from library_constants import *
 from datetime import datetime, timedelta
 
-
 lc = LIBRARY_COMMANDS
+library = Library()
 
+
+# TODO add library = Library() as a global variable
 
 def mainMenu():
     for i in list(lc):
@@ -23,22 +25,37 @@ def addbooks():
     author = input('Please enter the author of the book:')
     genre = input('Please enter the genre of the book:')
 
-    library = Library()
     library.addbookcomm(name, author, genre)
 
     print(f'{name} has been added!')
 
     returntomenu()
+    return
 
 
 def viewbooks():  # TODO ADD GENRES ETC
-    library = Library()
-    library.viewbookcomm()
+    rows = library.viewbookcomm()
+    if len(rows) == 0:
+        print('There are no books in the library!')
+        yn = 0
+        while yn != 'y' and yn != 'n':
+            yn = input('Would you like to add some? (y/n)')
+            if yn == 'y':
+                addbooks()
+                return
+            elif yn == 'n':
+                returntomenu()
+                return
+            else:
+                print('That is not a valid option!')
+    else:
+        for row in rows:
+            print(row)
     returntomenu()
+
 
 def editbooks():
     bookupdate = input('What book would you like to update?')
-    library = Library()
     if library.checkbookexists(bookupdate):
         pass
     else:
@@ -62,37 +79,23 @@ def editbooks():
 
 
 def deletedetails():
-    bookupdate = input('What book would you like to delete the details of?')
-    library = Library()
-    if library.checkbookexists(bookupdate):
+    book = input('What book would you like to delete?')
+    if library.checkbookexists(book):
         pass
     else:
         print('Book was not found')
-        editbooks()
-    valueupdate = input('Would attribute would you like to clear: \n'
-                        '1: Book Title \n'
-                        '2: Book Author \n'
-                        '3: Book Genre')  # TODO reduce overlap with editbook()
-    if valueupdate == '1':
-        library.edittitlecomm(bookupdate, None)
-    elif valueupdate == '2':
-        library.editauthorcomm(bookupdate, None)
-    elif valueupdate == '3':
-        library.editgenrecomm(bookupdate, None)
-    else:
-        print('That is not a valid option... please try again')
-        editbooks()
+        deletedetails()
+    library.deletebook(book)
     returntomenu()
 
 
-def addmembers():  # TODO make member functions a separate class?
+def addmembers():
     name = input('Please enter the first and last name of the new member:')
     try:
         fname, lname = name.split()
     except ValueError:
         print('Incorrect name format. Try: FIRSTNAME LASTNAME')
         addmembers()
-    library = Library()
     library.addmembercomm(fname, lname)
 
     print(f'Member {fname} {lname} has been added!')
@@ -100,11 +103,24 @@ def addmembers():  # TODO make member functions a separate class?
     print(f'What would you like to do now?:')
     returntomenu()
 
-def checkout(): #TODO add in either member's/Book's name OR id
+    # TODO add in either member's/Book's name OR id
+    # TODO check there are books/members to choose from
+
+def checkout():
+    bookcheck, membercheck = False, False
     member = input('Please enter the users name:')
-    book = input('Please enter the book\'s title')
-    #TODO check user/book in database - error safety
-    library = Library()
+    while not bookcheck:
+        book = input('Please enter the book\'s title')
+        if library.checkbookexists(book):
+            bookcheck = True
+        else:
+            print('Book was not found')
+    while not membercheck:
+        member = input('Please enter the Member')
+        if library.checkmemberexists(member):
+            membercheck = True
+        else:
+            print('Member was not found')
     memberid = library.getidfrommember(member)
     bookid = library.getidfrombook(book)
     now = datetime.now()
@@ -113,6 +129,15 @@ def checkout(): #TODO add in either member's/Book's name OR id
     duedate = (now + timedelta(days=loanduration)).strftime("%d/%m/%Y")
     library.createloan(memberid, bookid, loandate, duedate)
     returntomenu()
+
+
+def whichbooks():
+    member = input('Please give the name of the member you wish to search:')
+    memberid = library.getidfrommember(member)
+    bookstomember = library.getMembersBooks(memberid)
+    print(bookstomember)
+    returntomenu()
+
 
 def returntomenu():
     ret = input('Would you like to return to the main menu (y/n):')
@@ -126,8 +151,10 @@ def returntomenu():
 
 
 def quitlib():
+    library.closedb()
     print('Goodbye!')
     return
+
 
 def rerundb():
     library = Library()

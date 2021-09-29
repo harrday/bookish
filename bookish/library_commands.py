@@ -61,11 +61,10 @@ class Library:
         self.cursor.execute(view_books)
 
         rows = self.cursor.fetchall()
-        for row in rows:
-            print(row)
-        return
+        return rows
 
     def checkbookexists(self, bookupdate):
+        bookupdate = (bookupdate,)
         check = """
             SELECT *
             FROM books
@@ -73,6 +72,22 @@ class Library:
             """
 
         self.cursor.execute(check, bookupdate)
+        rows = self.cursor.fetchall()
+        if len(rows) != 0:
+            return True
+        else:
+            return False
+
+    def checkmemberexists(self, memberupdate):
+        fname, lname = memberupdate.split()
+        name = (fname, lname)
+        check = """
+            SELECT *
+            FROM members
+            WHERE FirstName = ? AND LastName = ?
+            """
+
+        self.cursor.execute(check, name)
         rows = self.cursor.fetchall()
         if len(rows) != 0:
             return True
@@ -112,6 +127,16 @@ class Library:
             """
 
         self.cursor.execute(update, (textupdate, bookupdate))
+        self.lib.commit()
+        return
+
+    def deletebook(self, book):
+        book = (book,)
+        delete = """
+                    DELETE FROM books
+                    WHERE BookName = ?
+        """
+        self.cursor.execute(delete, book)
         self.lib.commit()
         return
 
@@ -159,6 +184,18 @@ class Library:
         self.lib.commit()
         return
 
-    #TODO REMEMBER TO CLOSE DATABASE/LIBRARY
+    def getMembersBooks(self, memberid):
+        memberid = (memberid,)
+        bookmember = """ SELECT * FROM loans INNER JOIN members 
+                            ON loans.MemberId = members.MemberId WHERE members.MemberId = ?
+                            """
+        self.cursor.execute(bookmember, memberid)
+        rows = self.cursor.fetchall()
+        return rows
+
+    def closedb(self):
+        self.lib.close()
+        return
+    #TODO continuity with capitalisation of names
 
 
